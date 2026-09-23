@@ -1,9 +1,12 @@
 
-<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>لوحة نقلي</title><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-gray-100 p-3"><h1 class="font-black text-xl mb-3">لوحة التحكم - إحصائيات المركبات</h1><div class="grid grid-cols-2 gap-2 mb-4" id="stats"></div><div id="orders" class="space-y-2"></div>
-<script type="module">import {db} from './firebase.js';import {collection,onSnapshot,updateDoc,doc} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-onSnapshot(collection(db,"orders"),snap=>{let c={واو:0,تكسي:0,'3 طن':0,'10+':0};let html="";snap.forEach(d=>{const o=d.data();if(o.truckType.includes('واو'))c.واو++;else if(o.truckType.includes('تكسي'))c.تكسي++;else if(o.truckType.includes('3 طن'))c['3 طن']++;else c['10+']++; if(o.status!=='new')return; html+=`<div class="bg-white p-3 rounded-xl flex justify-between"><div><b>${o.truckType}</b><div class="text-xs">${o.from}→${o.to} | ${o.phone}</div></div><button onclick="acc('${d.id}')" class="bg-black text-white px-4 rounded-xl">قبول</button></div>`;});
-stats.innerHTML=`<div class="bg-cyan-300 p-3 rounded-xl"><b>واو ${c.واو}</b></div><div class="bg-blue-400 p-3 rounded-xl"><b>تكسي ${c.تكسي}</b></div><div class="bg-orange-300 p-3 rounded-xl"><b>3 طن ${c['3 طن']}</b></div><div class="bg-purple-400 p-3 rounded-xl"><b>10+ طن ${c['10+']}</b></div>`;orders.innerHTML=html;});
-window.acc=async(id)=>{await updateDoc(doc(db,"orders",id),{status:"accepted"});}
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>إدارة</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-black text-white p-4"><h1 class="text-yellow-400 text-2xl font-black">لوحة الإدارة - نقلي</h1>
+<h2 class="mt-6 font-bold">🔴 سائقون بانتظار الموافقة</h2><div id="pending" class="space-y-3 mt-2"></div>
+<h2 class="mt-8 font-bold">🟢 سائقون معتمدون</h2><div id="approved" class="space-y-2 mt-2"></div>
+<h2 class="mt-8 font-bold">📦 الطلبات</h2><div id="orders" class="mt-2"></div>
+<script type="module">
+import { db, collection, onSnapshot, query, where, doc, updateDoc } from './firebase.js';
+onSnapshot(collection(db,"drivers"), snap=>{ pending.innerHTML=''; approved.innerHTML=''; snap.forEach(d=>{ const v=d.data(); if(v.status==='pending'){ pending.innerHTML+=`<div class="bg-white text-black p-3 rounded-xl flex gap-3"><img src="${v.selfie}" class="w-16 h-16 rounded-full object-cover"><div><b>${v.name} - ${v.phone}</b><br>${v.car}<br><a href="${v.idcard}" target="_blank" class="text-blue-600 underline">عرض البطاقة</a><br><button data-id="${d.id}" class="approve bg-green-600 text-white px-4 py-1 rounded mt-1">موافقة ✅</button></div></div>`; } else { approved.innerHTML+=`<div class="bg-gray-800 p-2 rounded text-sm">${v.name} - ${v.phone} - ${v.car}</div>`; }}); document.querySelectorAll('.approve').forEach(b=>b.onclick=async()=>{ await updateDoc(doc(db,"drivers",b.dataset.id),{status:'approved'}); }); });
+onSnapshot(collection(db,"orders"), snap=>{ orders.innerHTML=''; snap.forEach(d=>{ const o=d.data(); orders.innerHTML+=`<div class="bg-gray-800 p-2 rounded mb-1 text-sm">${o.from} -> ${o.to} | ${o.status} ${o.driverName||''}</div>`}); });
 </script></body></html>
 
