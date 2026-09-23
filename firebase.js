@@ -1,13 +1,22 @@
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, where, doc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
 const firebaseConfig = {
-  apiKey: "AIzaSyCjmj1TjIjWrJjhisP-Or8OFYJ3TCZRSxs",
-  authDomain: "nagli-6f321.firebaseapp.com",
-  projectId: "nagli-6f321",
-  storageBucket: "nagli-6f321.firebasestorage.app",
-  messagingSenderId: "19948171002",
-  appId: "1:19948171002:web:568a05fbdaba240879a343",
-  measurementId: "G-D96CXV6Z01"
+  apiKey: "ضع مفتاحك هنا",
+  authDomain: "ضع هنا",
+  projectId: "ضع هنا",
+  storageBucket: "ضع هنا",
+  messagingSenderId: "ضع هنا",
+  appId: "ضع هنا"
 };
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
+export { db, storage, collection, addDoc, onSnapshot, query, where, doc, updateDoc, getDocs, ref, uploadBytes, getDownloadURL };
+
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
