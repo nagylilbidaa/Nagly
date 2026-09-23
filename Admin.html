@@ -1,6 +1,58 @@
 
 <!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>إدارة</title><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-black text-white p-4"><h1 class="text-yellow-400 text-2xl font-black">لوحة الإدارة - نقلي</h1>
+<body class="bg-black text-white p-4">
+<div style="background:#fff3cd; padding:15px; margin:10px; border-radius:10px">
+  <h3>طلبات سائقين جدد - بانتظار اعتمادك</h3>
+  <div id="pendingDrivers">لا يوجد طلبات جديدة</div>
+</div>
+
+<div style="background:#d4edda; padding:15px; margin:10px; border-radius:10px">
+  <h3>السائقين المعتمدين</h3>
+  <div id="approvedDrivers"></div>
+</div>
+
+<div style="background:#e7f3ff; padding:15px; margin:10px; border-radius:10px">
+  <h3>الطلبات الحية - الزبون والسائق مربوطين هنا</h3>
+  <div id="liveOrders"></div>
+</div>
+<hr>
+<script type="module">import { collection, onSnapshot } from "...
+import { collection, query, where, onSnapshot, doc, updateDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { db } from "./firebase.js";
+
+onSnapshot(query(collection(db,"drivers"), where("approved","==",false)), snap=>{
+  pendingDrivers.innerHTML="";
+  if(snap.empty){ pendingDrivers.innerHTML="لا يوجد طلبات"; return; }
+  snap.forEach(d=>{
+    const s=d.data();
+    pendingDrivers.innerHTML+=`
+      <div style="border:1px solid #ccc;padding:10px;margin:5px">
+        <img src="${s.photoUrl}" width="60" style="border-radius:50%">
+        ${s.name} - ${s.phone}<br>
+        لوحة: ${s.plateNumber} - بطاقة: ${s.idNumber}<br>
+        <a href="${s.idCardUrl}" target="_blank">بطاقة</a> | <a href="${s.carPhotoUrl}" target="_blank">سيارة</a><br>
+        <button onclick="approveDriver('${d.id}')">اعتماد ✅</button>
+      </div>`;
+  });
+});
+
+onSnapshot(query(collection(db,"drivers"), where("approved","==",true)), snap=>{
+  approvedDrivers.innerHTML="";
+  snap.forEach(d=>{ approvedDrivers.innerHTML+=`<div>${d.data().name} - ${d.data().plateNumber} ✔️</div>`; });
+});
+
+window.approveDriver = async (id)=>{
+  await updateDoc(doc(db,"drivers",id), {approved:true});
+};
+
+onSnapshot(query(collection(db,"orders"), orderBy("createdAt","desc")), snap=>{
+  liveOrders.innerHTML="";
+  snap.forEach(d=>{
+    const o=d.data();
+    liveOrders.innerHTML+=`<div>📍 ${o.from} → ${o.to} | ${o.status} | سائق: ${o.driverName || 'لم يقبل أحد بعد'}</div>`;
+  });
+});
+<h1 class="text-yellow-400 text-2xl font-black">لوحة الإدارة - نقلي</h1>
 <h2 class="mt-6 font-bold">🔴 سائقون بانتظار الموافقة</h2><div id="pending" class="space-y-3 mt-2"></div>
 <h2 class="mt-8 font-bold">🟢 سائقون معتمدون</h2><div id="approved" class="space-y-2 mt-2"></div>
 <h2 class="mt-8 font-bold">📦 الطلبات</h2><div id="orders" class="mt-2"></div>
@@ -9,4 +61,7 @@ import { db, collection, onSnapshot, query, where, doc, updateDoc } from './fire
 onSnapshot(collection(db,"drivers"), snap=>{ pending.innerHTML=''; approved.innerHTML=''; snap.forEach(d=>{ const v=d.data(); if(v.status==='pending'){ pending.innerHTML+=`<div class="bg-white text-black p-3 rounded-xl flex gap-3"><img src="${v.selfie}" class="w-16 h-16 rounded-full object-cover"><div><b>${v.name} - ${v.phone}</b><br>${v.car}<br><a href="${v.idcard}" target="_blank" class="text-blue-600 underline">عرض البطاقة</a><br><button data-id="${d.id}" class="approve bg-green-600 text-white px-4 py-1 rounded mt-1">موافقة ✅</button></div></div>`; } else { approved.innerHTML+=`<div class="bg-gray-800 p-2 rounded text-sm">${v.name} - ${v.phone} - ${v.car}</div>`; }}); document.querySelectorAll('.approve').forEach(b=>b.onclick=async()=>{ await updateDoc(doc(db,"drivers",b.dataset.id),{status:'approved'}); }); });
 onSnapshot(collection(db,"orders"), snap=>{ orders.innerHTML=''; snap.forEach(d=>{ const o=d.data(); orders.innerHTML+=`<div class="bg-gray-800 p-2 rounded mb-1 text-sm">${o.from} -> ${o.to} | ${o.status} ${o.driverName||''}</div>`}); });
 </script></body></html>
+
+
+
 
