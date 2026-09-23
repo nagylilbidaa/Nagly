@@ -1,11 +1,25 @@
 
-<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>سائق نقلي</title><script src="https://cdn.tailwindcss.com"></script></head>
-<body class="bg-slate-50 p-3"><h1 class="font-black text-xl">تطبيق السائق</h1>
-<div class="flex gap-1 my-3 overflow-auto"><button onclick="f='all';render()" class="bg-black text-white px-3 py-1 rounded-full">الكل</button><button onclick="f='واو';render()" class="bg-gray-200 px-3 py-1 rounded-full">واو</button><button onclick="f='تكسي';render()" class="bg-gray-200 px-3 py-1 rounded-full">تكسي</button><button onclick="f='3 طن';render()" class="bg-gray-200 px-3 py-1 rounded-full">3 طن</button><button onclick="f='10+';render()" class="bg-gray-200 px-3 py-1 rounded-full">10+ طن</button></div>
-<audio id="ring" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio><div id="list" class="space-y-2"></div>
-<script type="module">import {db} from './firebase.js';import {collection,onSnapshot,updateDoc,doc} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-let all=[];let f='all';let first=true;const ring=document.getElementById('ring');
-onSnapshot(collection(db,"orders"),snap=>{if(!first){snap.docChanges().forEach(ch=>{if(ch.type==='added'&&ch.doc.data().status==='new'){ring.play(); if(Notification.permission==='granted') new Notification('🚚 طلب جديد: '+ch.doc.data().truckType);}});}first=false;all=[];snap.forEach(d=>all.push({id:d.id,...d.data()}));render();});
-window.render=()=>{list.innerHTML="";all.filter(o=>o.status==='accepted'&&(f==='all'||o.truckType.includes(f))).forEach(o=>{list.innerHTML+=`<div class="bg-white p-3 rounded-xl shadow"><b>${o.truckType}</b><div class="text-sm">${o.from}→${o.to} - ${o.phone}</div><div class="flex gap-2 mt-2"><a href="tel:${o.phone}" class="bg-black text-white flex-1 text-center py-2 rounded-xl">اتصال</a><button onclick="done('${o.id}')" class="bg-white border flex-1 py-2 rounded-xl">تم التوصيل</button></div></div>`;});}
-window.done=async(id)=>{await updateDoc(doc(db,"orders",id),{status:"delivered"});};Notification.requestPermission();
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>سائق</title><script src="https://cdn.tailwindcss.com"></script></head>
+<body class="bg-gray-900 text-white"><div class="max-w-md mx-auto p-5">
+<h1 class="text-2xl font-black text-yellow-400">تسجيل سائق نقلي</h1>
+<div id="reg" class="bg-white text-black p-5 rounded-2xl mt-4 space-y-3">
+<input id="name" placeholder="الاسم" class="w-full p-3 border rounded-xl">
+<input id="phone" placeholder="الهاتف" class="w-full p-3 border rounded-xl">
+<input id="car" placeholder="السيارة" class="w-full p-3 border rounded-xl">
+<label class="text-sm font-bold">صورة شخصية:</label><input id="selfie" type="file" accept="image/*" class="w-full">
+<label class="text-sm font-bold">صورة بطاقة التعريف:</label><input id="idcard" type="file" accept="image/*" class="w-full">
+<button id="btn" class="w-full bg-black text-yellow-400 p-4 rounded-xl font-black">إرسال للمراجعة</button>
+<p class="text-xs text-gray-500 text-center">حسابك لن يعمل حتى يوافق المسؤول</p>
+</div>
+<div id="wait" class="hidden text-center mt-10 bg-yellow-400 text-black p-6 rounded-2xl"><h2 class="font-black">طلبك قيد المراجعة ⏳</h2><p>سنتواصل معك بعد التحقق</p></div>
+<div id="orders" class="hidden"><h2 class="font-bold text-yellow-400 mt-4">الطلبات</h2><div id="list" class="space-y-3 mt-3"></div></div>
+</div>
+<script type="module">
+import { db, storage, collection, addDoc, onSnapshot, query, where, doc, updateDoc, ref, uploadBytes, getDownloadURL } from './firebase.js';
+let driver = JSON.parse(localStorage.getItem('naqli_driver')||'null');
+async function check(){ if(!driver) return; const q=query(collection(db,"drivers"), where("phone","==",driver.phone)); onSnapshot(q,s=>{ if(s.empty) return; const d=s.docs[0].data(); if(d.status==='pending'){reg.classList.add('hidden');wait.classList.remove('hidden');} if(d.status==='approved'){reg.classList.add('hidden');wait.classList.add('hidden');orders.classList.remove('hidden'); loadOrders();}}); } check();
+async function uploadFile(file){ const r=ref(storage,'drivers/'+Date.now()+'_'+file.name); await uploadBytes(r,file); return await getDownloadURL(r); }
+btn.onclick=async()=>{ if(!name.value||!phone.value||!selfie.files[0]||!idcard.files[0]) return alert('املأ كل الحقول والصور'); btn.innerText='جاري الرفع...'; const selfieUrl=await uploadFile(selfie.files[0]); const idUrl=await uploadFile(idcard.files[0]); const data={name:name.value,phone:phone.value,car:car.value,selfie:selfieUrl,idcard:idUrl,status:'pending',createdAt:Date.now()}; await addDoc(collection(db,"drivers"),data); localStorage.setItem('naqli_driver',JSON.stringify(data)); alert('تم الإرسال'); location.reload(); };
+function loadOrders(){ const q=query(collection(db,"orders"), where("status","==","pending")); onSnapshot(q,snap=>{ list.innerHTML=''; snap.forEach(ds=>{ const o=ds.data(); list.innerHTML+=`<div class="bg-white text-black p-4 rounded-xl"><b>${o.from} -> ${o.to}</b><br>${o.phone}<br><button data-id="${ds.id}" class="accept w-full bg-green-600 text-white p-3 rounded-xl mt-2">قبول</button></div>`}); document.querySelectorAll('.accept').forEach(b=>b.onclick=async()=>{ await updateDoc(doc(db,"orders",b.dataset.id),{status:'accepted',driverName:driver.name,driverPhone:driver.phone}); }); }); }
 </script></body></html>
+
