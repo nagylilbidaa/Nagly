@@ -17,9 +17,30 @@
 <script type="module">
 import { db, storage, collection, addDoc, onSnapshot, query, where, doc, updateDoc, ref, uploadBytes, getDownloadURL } from './firebase.js';
 let driver = JSON.parse(localStorage.getItem('naqli_driver')||'null');
-async function check(){ if(!driver) return; const q=query(collection(db,"drivers"), where("phone","==",driver.phone)); onSnapshot(q,s=>{ if(s.empty) return; const d=s.docs[0].data(); if(d.status==='pending'){reg.classList.add('hidden');wait.classList.remove('hidden');} if(d.status==='approved'){reg.classList.add('hidden');wait.classList.add('hidden');orders.classList.remove('hidden'); loadOrders();}}); } check();
-async function uploadFile(file){ const r=ref(storage,'drivers/'+Date.now()+'_'+file.name); await uploadBytes(r,file); return await getDownloadURL(r); }
-btn.onclick=async()=>{ if(!name.value||!phone.value||!selfie.files[0]||!idcard.files[0]) return alert('املأ كل الحقول والصور'); btn.innerText='جاري الرفع...'; const selfieUrl=await uploadFile(selfie.files[0]); const idUrl=await uploadFile(idcard.files[0]); const data={name:name.value,phone:phone.value,car:car.value,selfie:selfieUrl,idcard:idUrl,status:'pending',createdAt:Date.now()}; await addDoc(collection(db,"drivers"),data); localStorage.setItem('naqli_driver',JSON.stringify(data)); alert('تم الإرسال'); location.reload(); };
-function loadOrders(){ const q=query(collection(db,"orders"), where("status","==","pending")); onSnapshot(q,snap=>{ list.innerHTML=''; snap.forEach(ds=>{ const o=ds.data(); list.innerHTML+=`<div class="bg-white text-black p-4 rounded-xl"><b>${o.from} -> ${o.to}</b><br>${o.phone}<br><button data-id="${ds.id}" class="accept w-full bg-green-600 text-white p-3 rounded-xl mt-2">قبول</button></div>`}); document.querySelectorAll('.accept').forEach(b=>b.onclick=async()=>{ await updateDoc(doc(db,"orders",b.dataset.id),{status:'accepted',driverName:driver.name,driverPhone:driver.phone}); }); }); }
-</script></body></html>
+ `const myPhone = ...` أو `localStorage.getItem`
+import { doc, getDoc, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const driverSnap = await getDoc(doc(db, "drivers", myPhone));
+if(!driverSnap.exists() || driverSnap.data().approved !== true){
+  alert("حسابك غير معتمد من الإدارة بعد");
+  throw "not approved";
+}
+ `function accept` أو `onclick accept`
+window.accept = async (orderId)=>{
+  const orderRef = doc(db, "orders", orderId);
+  try{
+    await runTransaction(db, async (t)=>{
+      const s = await t.get(orderRef);
+      if(s.data().status !== "pending") throw "سبقك سائق";
+      t.update(orderRef, { status:"accepted", driverId:myPhone, driverName:driverSnap.data().name });
+    });
+    alert("مبروك، الطلب أصبح لك - سيظهر في لوحة الإدارة أنك أنت من أخذته");
+  }catch(e){ alert(e); }
+}
+`collection(db,"orders")`
+query(collection(db, "orders"), where("status","==","pending"))
+
+
+
+
 
