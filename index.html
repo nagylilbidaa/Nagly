@@ -2,6 +2,20 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+  <script type="module">
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import{getfirestore,collection,addDoc,onSnapshot,query,where,doc,updateDoc,servertimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firestore.JS";
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyC5Wxnuy0CwhKSiSArMoW1r3VRwEb2jLqY",
+  authDomain: "nagly-81892.firebaseapp.com",
+  databaseURL: "https://nagly-81892-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "nagly-81892",
+  storageBucket: "nagly-81892.firebasestorage.app",
+  messagingSenderId: "868776490039",
+  appId: "1:868776490039:web:f5ee42a18804acc68bbbb2",
+  measurementId: "G-9GZEQ0PFBH"
+};
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>نقلي | Naqli</title>
