@@ -66,6 +66,7 @@ input,select,textarea{width:100%;padding:10px;border:1px solid #ddd;border-radiu
 <input id="destSearch" placeholder="وجهة التوصيل - المقاطعة أو الولاية">
 <div id="priceInfo" style="background:#e3f2fd;padding:8px;border-radius:8px;margin:5px 0">💰 السعر: سيحسب تلقائيا</div>
 </div>
+  <div class="card"><h4>3- حدد موقعك على الخريطة (في الأخير) *</h4><div id="map"></div></div>
 <button class="green" onclick="saveOrder()">✅إرسال الطلب </button>
 <div id="custMsg"></div>
 <div id="custAcceptedInfo" class="card hidden" style="border:2px solid #27ae60;background:#e8f5e9"></div>
@@ -98,7 +99,7 @@ input,select,textarea{width:100%;padding:10px;border:1px solid #ddd;border-radiu
 </div>
 
 <script>
-let CONFIG={phone:"46000000",ownerPass:"naqli2026",mouqataas:["تفرغ زينة","لكصر","تيارت","توجنين","عرفات","دار النعيم","الرياض","الميناء","السبخة"],prices:{"داخل المقاطعة":{"تاكسي":1500,"واوا":4000,"شاحنة متوسطة 3 طن":6000,"شاحنة كبيرة 10 طن":10000},"بين مقاطعات نواكشوط":{"تاكسي":3000,"واوا":7000,"شاحنة متوسطة 3 طن":10000,"شاحنة كبيرة 10 طن":16000},"روصو":{"واوا":25000,"شاحنة متوسطة 3 طن":40000,"شاحنة كبيرة 10 طن":70000},"نواذيبو":{"واوا":35000,"شاحنة متوسطة 3 طن":60000,"شاحنة كبيرة 10 طن":100000},"كيفة":{"واوا":40000,"شاحنة متوسطة 3 طن":70000,"شاحنة كبيرة 10 طن":120000}}};
+let CONFIG={phone:"32449538",ownerPass:"naqli2026",mouqataas:["تفرغ زينة","لكصر","تيارت","توجنين","عرفات","دار النعيم","الرياض","الميناء","السبخة"],prices:{"داخل المقاطعة":{"تاكسي":1500,"واوا":4000,"شاحنة متوسطة 3 طن":6000,"شاحنة كبيرة 10 طن":10000},"بين مقاطعات نواكشوط":{"تاكسي":3000,"واوا":7000,"شاحنة متوسطة 3 طن":10000,"شاحنة كبيرة 10 طن":16000},"روصو":{"واوا":25000,"شاحنة متوسطة 3 طن":40000,"شاحنة كبيرة 10 طن":70000},"نواذيبو":{"واوا":35000,"شاحنة متوسطة 3 طن":60000,"شاحنة كبيرة 10 طن":100000},"كيفة":{"واوا":40000,"شاحنة متوسطة 3 طن":70000,"شاحنة كبيرة 10 طن":120000}}};
 let orders=JSON.parse(localStorage.getItem('naqly_orders')||'[]');
 let drivers=JSON.parse(localStorage.getItem('naqly_drivers')||'[]');
 let currentVehicle='واوا'; let shopLatLng=null; let map=null; let marker=null; let currentDriver=null;
